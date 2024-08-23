@@ -43,7 +43,7 @@ if uploaded_file is not None:
         # finding the busiest user in group level(in group)
         if selected_user == 'Overall':
             st.title('Most Active Users')
-            x = helper.most_active_users(df)
+            x,new_df = helper.most_active_users(df)
             fig, ax = plt.subplots()
 
             col1,col2 = st.columns(2)
@@ -52,6 +52,15 @@ if uploaded_file is not None:
                 ax.bar(x.index,x.values,color='red')
                 plt.xticks(rotation='vertical')
                 st.pyplot(fig)
+            with col2:
+                st.dataframe(new_df)
+        
+        #wordcloud
+        df_wc = helper.create_wordcloud(selected_user,df)
+        fig,ax = plt.subplots()
+        ax.imshow(df_wc)
+        st.pyplot(fig)
+
 
 
 
