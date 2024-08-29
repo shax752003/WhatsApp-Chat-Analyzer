@@ -4,6 +4,12 @@ from collections import Counter
 import matplotlib.pyplot as plt
 import pandas as pd
 import emoji
+from textblob import TextBlob
+import pickle
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.pipeline import Pipeline
+import os
 
 
 
@@ -123,6 +129,68 @@ def plot_timeline(monthly_timeline, daily_timeline):
     plt.xticks(rotation=90)
 
     return fig1, fig2
+
+def conversation_starters(selected_user, df):
+    if selected_user != 'Overall':
+        df = df[df['user'] == selected_user]
+
+    # Identify the first message of each conversation
+    first_messages = df[df['message'].str.contains('Hi|Hello|Hey|hii|heyy|dei|deii|oii', case=False, na=False)]  # Adjust this regex as needed
+
+    # Count messages started by each user
+    starter_counts = first_messages['user'].value_counts().reset_index()
+    starter_counts.columns = ['user', 'starter_count']
+
+    return starter_counts
+
+def response_time(selected_user, df):
+    if selected_user != 'Overall':
+        df = df[df['user'] == selected_user]
+
+    # Convert 'date' column to datetime if not already done
+    df['date'] = pd.to_datetime(df['date'], format='%d/%m/%y %I:%M:%S %p')
+
+    # Sort by date to calculate response times in order
+    df = df.sort_values(by='date')
+
+    # Calculate time differences
+    df['response_time'] = df['date'].diff().dt.total_seconds() / 60  # Convert to minutes
+
+    # Remove the first message of each user or messages without response time
+    df = df.dropna(subset=['response_time'])
+
+    # Calculate average response time
+    avg_response_time = df['response_time'].mean()
+
+    return avg_response_time
+
+def sentiment_analysis(selected_user, df):
+    if selected_user != 'Overall':
+        df = df[df['user'] == selected_user]
+
+    # Convert 'date' column to datetime if not already done
+    df['date'] = pd.to_datetime(df['date'], format='%d/%m/%y %I:%M:%S %p')
+
+    # Define a function to get sentiment
+    def get_sentiment(text):
+        analysis = TextBlob(text)
+        if analysis.sentiment.polarity > 0:
+            return 'Positive'
+        elif analysis.sentiment.polarity < 0:
+            return 'Negative'
+        else:
+            return 'Neutral'
+
+    # Apply sentiment analysis
+    df['sentiment'] = df['message'].apply(get_sentiment)
+
+    # Calculate sentiment distribution
+    sentiment_counts = df['sentiment'].value_counts()
+
+    return sentiment_counts
+
+
+
 
 
 
