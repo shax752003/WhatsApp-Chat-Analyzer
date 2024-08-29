@@ -2,6 +2,7 @@ import streamlit as st
 import preprocessor
 import helper
 import matplotlib.pyplot as plt
+import numpy as np
 
 st.sidebar.title("Whatsapp Chat Analyzer")
 
@@ -56,10 +57,66 @@ if uploaded_file is not None:
                 st.dataframe(new_df)
         
         #wordcloud
+        st.title("WordCloud")
         df_wc = helper.create_wordcloud(selected_user,df)
         fig,ax = plt.subplots()
         ax.imshow(df_wc)
         st.pyplot(fig)
+        
+        #most common words
+        most_common_df = helper.most_common_words(selected_user,df)
+
+        fig,ax = plt.subplots()
+        ax.barh(most_common_df[0],most_common_df[1])
+        plt.xticks(rotation='vertical')
+        st.title('Most Common Words')
+        st.pyplot(fig)
+
+        # emoji analysis
+        emoji_df = helper.emoji_helper(selected_user, df)
+        st.title("Emoji Analysis")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.dataframe(emoji_df)
+        with col2:
+            fig, ax = plt.subplots()
+            ax.pie(emoji_df[1].head(), labels=emoji_df[0].head(), autopct='%1.1f%%', startangle=140, colors=plt.cm.Paired.colors)
+            ax.set_title('Top 5 Emojis Used')
+            st.pyplot(fig)
+        
+         # Timeline Analysis
+        st.title("Timeline Analysis")
+
+        # Get timeline data from helper
+        monthly_timeline, daily_timeline = helper.timeline_analysis(selected_user,df)
+
+        # Plot the timelines
+        fig1, fig2 = helper.plot_timeline(monthly_timeline, daily_timeline)
+
+        # Display the Monthly Timeline
+        st.header("Monthly Timeline")
+        st.pyplot(fig1)
+
+        # Display the Daily Timeline
+        st.header("Daily Timeline")
+        st.pyplot(fig2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+
 
 
 
